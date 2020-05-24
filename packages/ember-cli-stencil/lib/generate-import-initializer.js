@@ -3,11 +3,12 @@
 const camelCase = require('lodash.camelcase');
 const theredoc = require('theredoc');
 
-function generateInitializer(moduleNames) {
-  const modules = moduleNames.map(module => ({
-    name: module,
-    polyfillFunction: camelCase(`apply-polyfills-${module}`),
-    importFunction: camelCase(`define-${module}`)
+function generateInitializer(moduleConfigs) {
+  const modules = moduleConfigs.map(({ name, importOptions = {} }) => ({
+    name,
+    polyfillFunction: camelCase(`apply-polyfills-${name}`),
+    importFunction: camelCase(`define-${name}`),
+    importOptions
   }));
 
   const moduleImports = modules
@@ -27,12 +28,12 @@ function generateInitializer(moduleNames) {
     );
 
   const defineComponents = modules.reduce(
-    (acc, { polyfillFunction, importFunction }) =>
+    (acc, { polyfillFunction, importFunction, importOptions }) =>
       acc +
       (acc === '' ? '' : '\n') +
       theredoc`
         ${polyfillFunction}().then(function() {
-          ${importFunction}(window);
+          ${importFunction}(window, ${JSON.stringify(importOptions)});
         });
       `,
     ''

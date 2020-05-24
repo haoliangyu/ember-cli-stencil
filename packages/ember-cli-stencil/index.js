@@ -94,10 +94,17 @@ module.exports = {
     if (config.autoImportCollections) {
       log('configuration enabled auto-importing stencil collections');
 
+      const collectionsConfig = config.collections || {};
       const importedCollectionsTree = writeFile(
         'initializers/auto-import-stencil-collections.js',
         generateInitializer(
-          this.stencilCollections.map(collection => collection.name)
+          this.stencilCollections.map(collection => {
+            const config = collectionsConfig[collection.name] || {};
+            return {
+              name: collection.name,
+              importOptions: config.importOptions
+            };
+          })
         )
       );
 
